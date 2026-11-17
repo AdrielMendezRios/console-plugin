@@ -43,7 +43,7 @@ spec:
 
         ## Create the namespace
 
-        `oc create namespace vm-cloning-demo`{{"{{copy}}"}}
+        `oc create namespace vm-cloning-demo`{{"{{execute}}"}}
 
         ## Deploy the source VM
 
@@ -514,7 +514,7 @@ spec:
 
         Delete the namespace:
 
-        `oc delete namespace vm-cloning-demo`{{"{{copy}}"}}
+        `oc delete namespace vm-cloning-demo`{{"{{execute}}"}}
 
         ## Verify cleanup
 

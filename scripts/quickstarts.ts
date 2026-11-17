@@ -3,6 +3,11 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { parseAllDocuments, stringify } from 'yaml';
+import {
+  normalizeCommand,
+  parseNamespaceCommand,
+  QUICKSTART_COMMAND_REGISTRY,
+} from '../src/commands/quickstartCommands.ts';
 
 const CHART = 'charts/partner-labs-console-plugin';
 const TEMPLATES = 'templates/virt-cookbook';
@@ -331,11 +336,67 @@ function validateScenario(
   return resources;
 }
 
+function collectMarkdownStrings(value: unknown, result: string[]): void {
+  if (typeof value === 'string') {
+    result.push(value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) collectMarkdownStrings(item, result);
+    return;
+  }
+  if (value !== null && typeof value === 'object') {
+    for (const item of Object.values(value)) collectMarkdownStrings(item, result);
+  }
+}
+
+interface NamespaceLifecycleCommand {
+  action: string;
+  params?: { name?: string };
+}
+
+function validateNamespaceLifecycle(resources: Map<string, Mapping>): void {
+  for (const [id, spec] of resources) {
+    const markdown: string[] = [];
+    collectMarkdownStrings(spec, markdown);
+    const creates = new Map<string, string>();
+    const deletes = new Map<string, string>();
+
+    for (const content of markdown) {
+      for (const match of content.matchAll(/`([^`\n]+)`/g)) {
+        const command = normalizeCommand(match[1]);
+        const request = parseNamespaceCommand(command) as NamespaceLifecycleCommand | undefined;
+        if (!request) continue;
+        check(
+          !Object.hasOwn(QUICKSTART_COMMAND_REGISTRY, command),
+          `${id}: ${command}`,
+          'namespace lifecycle command must be auto-detected, not registered manually',
+        );
+        const name = request.params?.name;
+        check(name !== undefined, `${id}: ${command}`, 'namespace command must include a name');
+        if (request.action === 'delete-demo-namespace') {
+          deletes.set(name, command);
+        } else {
+          creates.set(name, command);
+        }
+      }
+    }
+
+    for (const [name, command] of creates) {
+      check(deletes.has(name), `${id}: ${command}`, `missing matching delete for "${name}"`);
+    }
+    for (const [name, command] of deletes) {
+      check(creates.has(name), `${id}: ${command}`, `missing matching create for "${name}"`);
+    }
+  }
+}
+
 export function validateQuickStarts(root: string): number {
   const inventory = readInventory(root);
   helm(root, ['lint', CHART, '--set-string', IMAGE]);
   const allEnabled = Object.fromEntries(Object.keys(inventory.defaults).map((id) => [id, true]));
   const baseline = validateScenario(root, inventory, 'all enabled', allEnabled);
+  validateNamespaceLifecycle(baseline);
   validateScenario(root, inventory, 'defaults', undefined, baseline);
   for (const id of Object.keys(allEnabled)) {
     const enabled = { ...allEnabled, [id]: false };

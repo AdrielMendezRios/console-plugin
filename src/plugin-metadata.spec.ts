@@ -10,7 +10,14 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 
 const localeFile = path.join(ROOT, `locales/en/plugin__${packageJson.consolePlugin.name}.json`);
 const extensions = JSON.parse(
   fs.readFileSync(path.join(ROOT, 'console-extensions.json'), 'utf-8'),
-) as { type: string; properties: { component?: { $codeRef: string } } }[];
+) as {
+  type: string;
+  properties: {
+    component?: { $codeRef: string };
+    provider?: { $codeRef: string };
+    useValueHook?: { $codeRef: string };
+  };
+}[];
 
 describe('plugin metadata', () => {
   it('has a matching i18n locale file, package name, and consolePlugin name', () => {
@@ -25,6 +32,19 @@ describe('plugin metadata', () => {
       const codeRef = extension.properties.component?.$codeRef;
       expect(codeRef).toBeDefined();
       expect(exposedModules).toHaveProperty(codeRef ?? '');
+    }
+  });
+
+  it('exposes the QuickStart command bridge context provider', () => {
+    const exposedModules = packageJson.consolePlugin.exposedModules;
+    const providers = extensions.filter((item) => item.type === 'console.context-provider');
+    expect(providers).toHaveLength(1);
+    for (const codeRef of [
+      providers[0].properties.provider?.$codeRef,
+      providers[0].properties.useValueHook?.$codeRef,
+    ]) {
+      expect(codeRef).toBeDefined();
+      expect(exposedModules).toHaveProperty(codeRef?.split('.')[0] ?? '');
     }
   });
 });

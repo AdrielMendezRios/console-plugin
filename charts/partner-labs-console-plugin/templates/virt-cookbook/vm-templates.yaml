@@ -39,14 +39,7 @@ spec:
       description: |-
         1. List templates and verify the RHEL 9 boot source is ready:
 
-        <span class="pf-v6-c-clipboard-copy pf-m-inline">
-          <code class="pf-v6-c-clipboard-copy__text" data-snippet-id="vm-templates-list">oc get templates -n openshift</code>
-          <span class="pf-v6-c-clipboard-copy__actions">
-            <span class="pf-v6-c-clipboard-copy__actions-item">
-              <button class="pf-v6-c-button pf-m-plain" type="button" aria-label="Copy template-list command" data-copy-for="vm-templates-list">Copy</button>
-            </span>
-          </span>
-        </span>
+        `oc get templates -n openshift`{{"{{execute}}"}}
 
         `oc get datasource rhel9 -n openshift-virtualization-os-images -o yaml`{{"{{execute}}"}}
 

@@ -1,0 +1,8 @@
+.partner-labs-console-plugin__quickstart-command-action {
+  display: flex;
+  align-items: center;
+}
+
+.partner-labs-console-plugin__quickstart-command-result {
+  margin-block-start: var(--pf-t--global--spacer--sm);
+}

@@ -89,7 +89,8 @@
     "exposedModules": {
       "DemosPage": "./components/DemosPage",
       "ExamplePage": "./components/ExamplePage",
-      "CookbookPage": "./cookbook/CookbookPage"
+      "CookbookPage": "./cookbook/CookbookPage",
+      "QuickStartCommandBridge": "./quickstart/QuickStartCommandProvider"
     },
     "dependencies": {
       "@console/pluginAPI": ">=4.19.0-0"

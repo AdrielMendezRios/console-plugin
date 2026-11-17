@@ -82,6 +82,60 @@ route, exposed module, or cookbook content file.
      quickStartId: my-demo
    ```
 
+## Add Run controls for console commands
+
+Console renders inline commands marked with `{{execute}}` as code blocks. When
+Web Terminal is installed, those blocks include Console's own play button, which
+sends the command to the terminal. Without Web Terminal, they are copy-only.
+
+The plugin also exposes a `console.context-provider` bridge that adds a **Run**
+control to QuickStart code blocks whose command matches an SDK action. Results
+appear below the block, so the learner can stay in the walkthrough. The bridge
+does not need Web Terminal and never evaluates the command text as a shell
+command.
+
+The command-to-action registry is
+[`src/commands/quickstartCommands.ts`](src/commands/quickstartCommands.ts). The
+actions live in [`src/commands/actions.ts`](src/commands/actions.ts), and the
+supported action IDs are listed in
+[`src/commands/supportedActions.ts`](src/commands/supportedActions.ts).
+`QUICKSTART_COMMAND_ACTIONS` is the subset the bridge may use; the cookbook-only
+create and cleanup actions are not available to QuickStarts.
+
+Namespace lifecycle commands are detected automatically and do not need a
+registry entry:
+
+- `oc new-project <name>`
+- `oc create namespace <name>`
+- `oc delete project <name>` or `oc delete namespace <name>`
+- Either delete form may include `--ignore-not-found`
+
+Demo namespaces are created through `ProjectRequest` (or directly as a
+`Namespace`) and labeled `partner-labs.io/demo-namespace=true`. Deleting one
+requires typing its exact name into a confirmation dialog, and the bridge only
+deletes namespaces carrying that label. Existing unlabeled namespaces are
+refused; reserved and system namespaces are rejected. Commands with shell
+redirection or pipes, watches, `oc apply -f`, and `virtctl` remain copy-only.
+
+To make another non-namespace command runnable:
+
+1. Add an exact, whitespace-normalized command entry to the registry. Prefer a
+   command that is already in a QuickStart CR.
+2. Add or reuse an allowlisted action. Do not map commands that depend on shell
+   redirection, start watches, or need CLI tools such as `virtctl`.
+3. Add the command to
+   [`quickstartCommands.spec.ts`](src/commands/quickstartCommands.spec.ts), run
+   `yarn i18n` for new messages, then run `yarn test`, `yarn lint`, and
+   `yarn validate:quickstarts`.
+
+Commands without a registry entry or namespace lifecycle pattern stay copy-only.
+A command that needs the active project is disabled while **All projects** is
+selected; entries with an explicit namespace can still run. The bridge discovers
+code blocks inside `[data-test="quickstart drawer"]` and
+`.pfext-quick-start-panel-content__body`, which belong to the PatternFly
+QuickStarts drawer. Treat those selectors as versioned integration points and
+verify them when upgrading Console or `@patternfly/quickstarts`.
+
 ## Ship and verify
 
 Card metadata ships in the plugin image; CR content and install switches ship in

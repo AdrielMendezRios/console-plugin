@@ -216,6 +216,19 @@ test.describe('Console plugin cards', () => {
     await expect(page.getByText('Inspect a supplied VM template', { exact: true })).toBeVisible();
   });
 
+  test('runs a read-only command inside a walkthrough', async ({ page }) => {
+    await page.goto('/partner-labs-demos');
+    await page.getByTestId('card-action-vm-templates').click();
+    await expect(
+      page.getByRole('heading', { name: 'Create custom VM templates', exact: true }),
+    ).toBeVisible();
+    await page.locator('[data-testid="qs-drawer-start"]').click();
+    const run = page.getByTestId('quickstart-run-command').first();
+    await expect(run).toBeVisible();
+    await run.click();
+    await expect(page.getByTestId('quickstart-command-output-result').first()).toBeVisible();
+  });
+
   test('opens the Cloud-init Fundamentals quick start', async ({ page }) => {
     await page.goto('/partner-labs-demos');
     await page.getByTestId('card-action-cloud-init-fundamentals').click();
