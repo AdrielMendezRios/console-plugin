@@ -67,6 +67,8 @@ plugin:
       enabled: true
     cloud-init-fundamentals:
       enabled: true
+    vm-monitoring-metrics:
+      enabled: true
   jobs:
     patchConsoles:
       enabled: true

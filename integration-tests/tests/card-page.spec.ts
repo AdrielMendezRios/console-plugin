@@ -236,6 +236,15 @@ test.describe('Console plugin cards', () => {
     await expect(page.getByText('Check the Fedora boot source')).toBeVisible();
   });
 
+  test('opens the VM monitoring and metrics quick start', async ({ page }) => {
+    await page.goto('/partner-labs-demos');
+    await page.getByTestId('card-action-vm-monitoring-metrics').click();
+    await expect(
+      page.getByRole('heading', { name: 'Monitor VM performance and metrics', exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText('Create the monitoring VM', { exact: true })).toBeVisible();
+  });
+
   test('opens the VM export and import walkthrough', async ({ page }) => {
     await page.goto('/partner-labs-demos');
     await page.getByTestId('card-action-vm-export-import').click();
